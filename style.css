@@ -1,1 +1,65 @@
-*{box-sizing:border-box}body{margin:0;background:#090b10;color:#f2f4f8;font-family:Tahoma,Arial,sans-serif}header{display:flex;align-items:center;gap:14px;padding:20px;background:#111722;border-bottom:1px solid #273244}.logo{width:58px;height:58px;border-radius:16px;background:#050608;border:1px solid #b89a58;color:#e3c477;display:grid;place-items:center;font-size:40px;font-weight:bold}h1,p{margin:0}header p{color:#9ba8bb;margin-top:6px}main{max-width:950px;margin:auto;padding:18px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}.stats article{padding:16px;background:#111722;border:1px solid #273244;border-radius:14px}.stats small{display:block;color:#a8b2c2}.stats strong{display:block;font-size:26px;margin-top:8px}.tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}input,select,textarea,button{font:inherit;border-radius:10px;padding:12px;background:#111722;color:#f2f4f8;border:1px solid #354257;min-width:0}button{cursor:pointer;background:#202c3e}#add{background:#9c7b35;color:#fff;border-color:#c5a85e} .booking{background:#111722;border:1px solid #273244;border-radius:13px;padding:14px;margin:10px 0;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.muted{color:#a8b2c2;font-size:13px;margin-top:6px}.actions{display:flex;gap:6px}dialog{width:min(560px,94vw);background:#111722;color:white;border:1px solid #354257;border-radius:16px}dialog::backdrop{background:#000b}form{display:grid;grid-template-columns:1fr 1fr;gap:9px}form h2,textarea,menu{grid-column:1/-1}menu{display:flex;gap:8px;justify-content:flex-start;padding:0}textarea{min-height:70px}.empty{text-align:center;color:#a8b2c2;padding:35px}@media(max-width:500px){.tools,form{grid-template-columns:1fr}header{padding:14px}main{padding:12px}}
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090b10">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <title>يوسف | سجل الحجوزات</title>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="icon-512.png" alt="شعار" style="width: 50px; height: 50px; border-radius: 12px; object-fit: cover;">
+    </div>
+    <div>
+      <h1>يوسف</h1>
+      <p>سجل الحجوزات — نسخة المدير المطور</p>
+    </div>
+  </header>
+  <main style="display: flex; flex-direction: column; gap: 15px;">
+    <section class="stats">
+      <article><small>كل الحجوزات</small><strong id="count">0</strong></article>
+      <article><small>حجوزات اليوم</small><strong id="today">0</strong></article>
+    </section>
+    <div class="tools">
+      <input id="search" placeholder="ابحث باسم المريض أو الهاتف">
+      <input id="filterDate" type="date">
+      <button id="add">＋ إضافة حجز جديد</button>
+      <button id="export">تصدير السجل CSV</button>
+    </div>
+    <div id="list"></div>
+  </main>
+  <dialog id="dlg">
+    <form id="form">
+      <h2>بيانات الحجز الجديد</h2>
+      <input name="name" placeholder="اسم المريض" required>
+      <input name="age" type="number" placeholder="العمر">
+      <input name="phone" placeholder="رقم الهاتف">
+      <input name="doctor" placeholder="اسم الطبيب">
+      <input name="specialty" placeholder="اختصاص الطبيب">
+      <input name="date" type="date" required>
+      <input name="time" type="time">
+      <input name="fee" type="number" placeholder="سعر الكشفية">
+      <select name="status">
+        <option>محجوز</option>
+        <option>حضر</option>
+        <option>لم يحضر</option>
+        <option>ملغي</option>
+      </select>
+      <textarea name="notes" placeholder="ملاحظات الحجز"></textarea>
+      <menu>
+        <button type="button" id="cancel">إلغاء</button>
+        <button type="submit">حفظ الحجز</button>
+      </menu>
+    </form>
+  </dialog>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    }
+  </script>
+</body>
+</html>
