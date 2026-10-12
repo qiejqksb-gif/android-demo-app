@@ -15,55 +15,101 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// عناصر الواجهة المأخوذة من الـ HTML
+// عناصر الواجهة
 const dlg = document.getElementById("dlg");
 const addBtn = document.getElementById("add");
 const cancelBtn = document.getElementById("cancel");
 const form = document.getElementById("form");
 const listContainer = document.getElementById("list");
 const countEl = document.getElementById("count");
+const todayEl = document.getElementById("today");
+const searchInput = document.getElementById("search");
+const filterDateInput = document.getElementById("filterDate");
+const exportBtn = document.getElementById("export");
 
-// فتح وإغلاق نافذة إضافة حجز (Dialog)
+let allBookings = []; // مصفوفة لتخزين البيانات محلياً للبحث والفلترة السريعة
+
+// فتح وإغلاق نافذة إضافة حجز
 addBtn.addEventListener("click", () => dlg.showModal());
 cancelBtn.addEventListener("click", () => dlg.close());
 
-// دالة لجلب الحجوزات وعرضها في الصفحة
+// دالة جلب الحجوزات من الفايربيس وعرضها
 async function loadBookings() {
   listContainer.innerHTML = "<p>جاري تحميل الحجوزات...</p>";
   try {
     const q = query(collection(db, "bookings"), orderBy("date", "desc"));
     const querySnapshot = await getDocs(q);
-    listContainer.innerHTML = "";
     
-    let total = 0;
+    allBookings = [];
     querySnapshot.forEach((doc) => {
-      total++;
-      const data = doc.data();
-      
-      // إنشاء كارد لكل مريض في الواجهة
-      const card = document.createElement("div");
-      card.className = "booking-card";
-      card.innerHTML = `
-        <h3>${data.name} (${data.age || 'غير محدد'} سنة)</h3>
-        <p><b>الهاتف:</b> ${data.phone || 'لا يوجد'} | <b>الطبيب:</b> ${data.doctor || 'غير محدد'}</p>
-        <p><b>التاريخ:</b> ${data.date} | <b>الوقت:</b> ${data.time || '--:--'}</p>
-        <p><b>الحالة:</b> <span>${data.status}</span></p>
-        <hr>
-      `;
-      listContainer.appendChild(card);
+      allBookings.push({ id: doc.id, ...doc.data() });
     });
     
-    countEl.textContent = total;
+    renderList(allBookings);
+    updateStats();
   } catch (error) {
     console.error("خطأ أثناء تحميل البيانات: ", error);
     listContainer.innerHTML = "<p>فشل في تحميل الحجوزات.</p>";
   }
 }
 
-// دالة إرسال وحفظ الحجز الجديد عند الضغط على زر حفظ
+// دالة بناء كروت المرضى وتحديث القائمة في الواجهة
+function renderList(bookingsArray) {
+  listContainer.innerHTML = "";
+  if (bookingsArray.length === 0) {
+    listContainer.innerHTML = "<p>لا توجد حجوزات متطابقة.</p>";
+    return;
+  }
+  
+  bookingsArray.forEach((data) => {
+    const card = document.createElement("div");
+    card.className = "booking-card";
+    card.innerHTML = `
+      <h3>${data.name} (${data.age || 'غير محدد'} سنة)</h3>
+      <p><b>الهاتف:</b> ${data.phone || 'لا يوجد'} | <b>الطبيب:</b> ${data.doctor || 'غير محدد'}</p>
+      <p><b>التاريخ:</b> ${data.date} | <b>الوقت:</b> ${data.time || '--:--'}</p>
+      <p><b>الحالة:</b> <span class="status-${data.status}">${data.status}</span></p>
+      ${data.notes ? `<p><b>ملاحظات:</b> \${data.notes}</p>` : ''}
+      <hr>
+    `;
+    listContainer.appendChild(card);
+  });
+}
+
+// دالة تحديث الإحصائيات (العدد الكلي وحجوزات اليوم)
+function updateStats() {
+  countEl.textContent = allBookings.length;
+  
+  // الحصول على تاريخ اليوم بصيغة YYYY-MM-DD المتوافقة مع حقول الإدخال
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayCount = allBookings.filter(b => b.date === todayStr).length;
+  todayEl.textContent = todayCount;
+}
+
+// تفعيل خاصية البحث الفوري أثناء الكتابة
+searchInput.addEventListener("input", () => {
+  const queryText = searchInput.value.toLowerCase();
+  const filtered = allBookings.filter(b => 
+    b.name.toLowerCase().includes(queryText) || 
+    (b.phone && b.phone.includes(queryText))
+  );
+  renderList(filtered);
+});
+
+// تفعيل فلتر التصفية حسب التاريخ
+filterDateInput.addEventListener("change", () => {
+  const selectedDate = filterDateInput.value;
+  if (!selectedDate) {
+    renderList(allBookings);
+    return;
+  }
+  const filtered = allBookings.filter(b => b.date === selectedDate);
+  renderList(filtered);
+});
+
+// دالة حفظ الحجز الجديد
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  
   const formData = new FormData(form);
   const bookingData = {
     name: formData.get("name"),
@@ -84,12 +130,37 @@ form.addEventListener("submit", async (e) => {
     alert("تم تسجيل الحجز بنجاح!");
     form.reset();
     dlg.close();
-    loadBookings(); // تحديث القائمة فوراً بعد الإضافة
+    loadBookings();
   } catch (error) {
-    alert("حدث خطأ أثناء الحفظ، يرجى المحاولة لاحقاً.");
+    alert("حدث خطأ أثناء الحفظ!");
     console.error(error);
   }
 });
 
-// تشغيل جلب البيانات بمجرد فتح التطبيق
+// تفعيل زر تصدير البيانات إلى ملف CSV (Excel)
+exportBtn.addEventListener("click", () => {
+  if (allBookings.length === 0) {
+    alert("لا توجد بيانات لتصديرها!");
+    return;
+  }
+  
+  // إعداد عناوين الأعمدة
+  let csvContent = "\uFEFFاسم المريض,العمر,رقم الهاتف,الطبيب,التاريخ,الوقت,الحالة,ملاحظات\n";
+  
+  // تجميع البيانات
+  allBookings.forEach(b => {
+    csvContent += `"${b.name}","${b.age || ''}","${b.phone || ''}","${b.doctor || ''}","${b.date}","${b.time || ''}","${b.status}","${b.notes || ''}"\n`;
+  });
+  
+  // تحميل الملف للمستخدم
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute("download", `سجل_الحجوزات_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+
+// تشغيل جلب البيانات عند بدء التطبيق
 loadBookings();
