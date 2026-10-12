@@ -10,7 +10,7 @@
 </head>
 <body>
   <header>
-    <div class="logo">؟</div>
+    <div class="logo">🩺</div>
     <div>
       <h1>يوسف</h1>
       <p>سجل الحجوزات — نسخة المدير</p>
@@ -41,10 +41,10 @@
       <input name="time" type="time">
       <input name="fee" type="number" placeholder="سعر الكشفية">
       <select name="status">
-        <option>محجوز</option>
-        <option>حضر</option>
-        <option>لم يحضر</option>
-        <option>ملغي</option>
+        <option value="محجوز">محجوز</option>
+        <option value="حضر">حضر</option>
+        <option value="لم يحضر">لم يحضر</option>
+        <option value="ملغي">ملغي</option>
       </select>
       <textarea name="notes" placeholder="ملاحظات"></textarea>
       <menu>
@@ -53,7 +53,9 @@
       </menu>
     </form>
   </dialog>
-  <script src="app.js"></script>
+
+  <!-- تم تحويل نوع الملف إلى module ليتمكن من تشغيل الـ import الخاصة بـ Firebase -->
+  <script type="module" src="app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(()=>{});
