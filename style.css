@@ -222,3 +222,290 @@ dialog::backdrop {
   color: white;
   border: none;
 }
+
+/* ===== واجهة العيادة الفاخرة ===== */
+:root {
+  --gold: #d9b45b;
+  --gold-light: #f4d98c;
+  --navy: #101a30;
+  --navy-light: #192743;
+  --black: #080b12;
+  --card: #111725;
+  --text: #f6f3eb;
+  --muted: #a7b0c2;
+  --border: rgba(217,180,91,.25);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0 !important;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at top right,
+      #1b2944 0%, transparent 48%),
+    linear-gradient(145deg, #080b12, #101827 65%, #080b12) !important;
+  color: var(--text) !important;
+  font-family: "Tahoma", "Arial", sans-serif !important;
+  line-height: 1.7;
+  padding-bottom: 30px;
+}
+
+header {
+  position: relative;
+  display: flex !important;
+  align-items: center;
+  gap: 15px;
+  padding: 24px 20px !important;
+  margin: 12px auto 24px !important;
+  width: min(100% - 24px, 1000px);
+  background: linear-gradient(120deg, #17243c, #090d16) !important;
+  border: 1px solid var(--border);
+  border-radius: 22px !important;
+  box-shadow: 0 12px 35px #0005;
+  overflow: hidden;
+}
+
+header::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border: 1px solid #d9b45b22;
+  border-radius: 50%;
+  left: -55px;
+  top: -70px;
+  pointer-events: none;
+}
+
+header .logo {
+  width: 62px;
+  height: 62px;
+  min-width: 62px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #f4d98c, #a77a27);
+  color: #101522;
+  font-size: 30px;
+  box-shadow: 0 5px 20px #d9b45b30;
+}
+
+header h1 {
+  color: var(--gold-light) !important;
+  margin: 0 0 3px !important;
+  font-size: clamp(21px, 5vw, 30px);
+  font-weight: 800;
+}
+
+header p {
+  color: var(--muted) !important;
+  margin: 0 !important;
+  font-size: 13px;
+}
+
+main {
+  width: min(100% - 24px, 1000px);
+  margin: auto !important;
+}
+
+.stats {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px !important;
+  margin-bottom: 20px !important;
+}
+
+.stats article {
+  min-width: 0;
+  padding: 20px 16px !important;
+  background: linear-gradient(145deg, #17233a, #101520) !important;
+  border: 1px solid var(--border);
+  border-radius: 18px !important;
+  box-shadow: 0 8px 24px #0003;
+}
+
+.stats article small {
+  display: block;
+  color: var(--muted) !important;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.stats article strong {
+  display: block;
+  color: var(--gold-light) !important;
+  font-size: clamp(25px, 7vw, 35px);
+  line-height: 1.3;
+}
+
+.tools {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px !important;
+  padding: 16px !important;
+  margin-bottom: 20px !important;
+  background: #0e1421 !important;
+  border: 1px solid #26334a;
+  border-radius: 20px !important;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 47px;
+  padding: 12px 13px !important;
+  color: var(--text) !important;
+  background: #0a101c !important;
+  border: 1px solid #34415a !important;
+  border-radius: 12px !important;
+  font: inherit !important;
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8995aa !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px #d9b45b18;
+}
+
+.tools #search {
+  grid-column: 1 / -1;
+}
+
+button {
+  min-height: 45px;
+  padding: 11px 15px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  background: #1a2740 !important;
+  color: var(--gold-light) !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  transition: transform .15s ease, filter .15s ease;
+}
+
+button:active {
+  transform: scale(.97);
+}
+
+button:hover {
+  filter: brightness(1.15);
+}
+
+#add {
+  background: linear-gradient(135deg, #f2d68a, #c29a43) !important;
+  color: #101522 !important;
+  border: none !important;
+}
+
+#export {
+  background: #17233a !important;
+}
+
+#list {
+  display: grid;
+  gap: 13px;
+}
+
+/* بطاقات الحجوزات */
+#list > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 16px !important;
+  background: linear-gradient(145deg, #151e2f, #0d121d) !important;
+  border: 1px solid #2c3950;
+  border-radius: 17px !important;
+  box-shadow: 0 7px 22px #0003;
+  color: var(--text);
+}
+
+#list button {
+  margin: 4px;
+}
+
+dialog {
+  width: min(92%, 480px);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 22px !important;
+  background: #101827 !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 20px 70px #0009;
+}
+
+dialog::backdrop {
+  background: #000b;
+  backdrop-filter: blur(5px);
+}
+
+dialog h2 {
+  color: var(--gold-light);
+  margin-top: 0;
+}
+
+dialog form {
+  display: grid;
+  gap: 12px;
+}
+
+dialog menu {
+  display: flex;
+  gap: 10px;
+  padding: 0;
+  margin-top: 8px;
+}
+
+dialog menu button {
+  flex: 1;
+}
+
+@media (max-width: 420px) {
+  header {
+    padding: 18px 14px !important;
+  }
+
+  header .logo {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+  }
+
+  .tools {
+    padding: 11px !important;
+    gap: 9px !important;
+  }
+
+  .tools button {
+    padding: 10px 7px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (min-width: 700px) {
+  .tools {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+  }
+
+  .tools #search {
+    grid-column: auto;
+  }
+}
