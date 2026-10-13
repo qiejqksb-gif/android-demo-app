@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp } from "https://gstatic.com";
 
 import {
   getFirestore,
@@ -8,38 +8,68 @@ import {
   orderBy,
   onSnapshot,
   serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from "https://gstatic.com";
 
-// الكود السري الخاص بدخول الموظفين (يمكنك تعديله من هنا)
-const SECRET_CODE = "2026"; 
+// إعداد الأكواد السرية للنظام
+const EMPLOYEE_CODE = "2026"; // كود الموظف
+const ADMIN_CODE = "7777";     // كود المدير المشرف
 
-// دالة التحقق من الكود وحفظ الحالة في ذاكرة الهاتف
+// دالة التحكم في إظهار وإخفاء الخصائص المالية بناءً على الرتبة
+function applyPermissions(role) {
+  const financialSection = document.getElementById("revenue-report")?.closest('.milal') || document.getElementById("revenue-report");
+  const accountsTab = document.querySelector('button[onclick*="الحسابات"]') || document.getElementById("revenue");
+  
+  if (role === "employee") {
+      // إذا كان الداخل موظف، نخفي الأقسام المالية والحسابات تماماً
+      if (financialSection) financialSection.style.display = "none";
+      if (accountsTab) accountsTab.style.display = "none";
+      __PRIVATE_logDebug("تم تسجيل الدخول بصلاحيات: موظف. تم حجب البيانات المالية.");
+  } else if (role === "admin") {
+      // إذا كان الداخل مدير، تظهر له كل الصلاحيات
+      if (financialSection) financialSection.style.display = "block";
+      if (accountsTab) accountsTab.style.display = "block";
+      __PRIVATE_logDebug("تم تسجيل الدخول بصلاحيات: مدير. كافة الصلاحيات مفعّلة.");
+  }
+}
+
+// دالة التحقق من الكود المشترك (مدير أو موظف) عند ضغط زر الدخول
 window.checkEmployeeCode = function() {
   const userInput = document.getElementById("employee-code-input").value;
+  const loginScreen = document.getElementById("login-screen-ui");
   
-  if (userInput === SECRET_CODE) {
+  if (userInput === ADMIN_CODE) {
       localStorage.setItem("app_activated", "true");
-      const loginScreen = document.getElementById("login-screen-ui");
+      localStorage.setItem("user_role", "admin");
       if (loginScreen) loginScreen.style.display = "none";
+      applyPermissions("admin");
+      alert("أهلاً بك حضرة المدير! تم تفعيل النظام بصلاحيات كاملة.");
+  } else if (userInput === EMPLOYEE_CODE) {
+      localStorage.setItem("app_activated", "true");
+      localStorage.setItem("user_role", "employee");
+      if (loginScreen) loginScreen.style.display = "none";
+      applyPermissions("employee");
       alert("أهلاً بك! تم تفعيل نظام الموظف بنجاح.");
   } else {
-      alert("الكود السري خطأ! يرجى المحاولة مجدداً.");
+      alert("الكود السري الذي أدخلته غير صحيح! يرجى المحاولة مجدداً.");
   }
 };
 
-// الفحص التلقائي عند تشغيل التطبيق للتأكد إن كان الموظف مسجلاً سابقاً
+// الفحص التلقائي وتطبيق الصلاحيات فور فتح التطبيق
 window.addEventListener('DOMContentLoaded', () => {
   const isActivated = localStorage.getItem("app_activated");
-  if (isActivated === "true") {
+  const cachedRole = localStorage.getItem("user_role");
+  
+  if (isActivated === "true" && cachedRole) {
       const loginScreen = document.getElementById("login-screen-ui");
       if (loginScreen) loginScreen.style.display = "none";
+      applyPermissions(cachedRole);
   }
 });
 
-/* إعدادات Firebase الخاصة بك */
+/* إعدادات قاعدة بيانات Firebase الخاصة بك */
 const firebaseConfig = {
   apiKey: "AIzaSyAWwyEb0DUY0Q_ZBluwtM4-gLQv4wNdwE",
-  authDomain: "clinic-bookings-yousef.firebaseapp.com",
+  authDomain: "://firebaseapp.com",
   projectId: "clinic-bookings-yousef",
   storageBucket: "clinic-bookings-yousef.firebasestorage.app",
   messagingSenderId: "287479628978",
@@ -101,7 +131,7 @@ function addTextElement(parent, tag, text, className = "") {
   return element;
 }
 
-/* عرض رسالة الحالة */
+/* عرض رسالة الحالة في شريط الاتصال */
 function setConnection(message, state = "") {
   if (!connectionEl) return;
   connectionEl.textContent = message;
@@ -126,7 +156,7 @@ if (dlg) {
   });
 }
 
-/* تحديث الإحصائيات */
+/* تحديث الإحصائيات العامة */
 function updateStats() {
   const today = localDateString();
 
@@ -143,13 +173,18 @@ function updateStats() {
 
   if (countEl) countEl.textContent = formatMoney(allBookings.length);
   if (todayEl) todayEl.textContent = formatMoney(todayCount);
-  if (revenueEl) revenueEl.textContent = formatMoney(totalFees);
-  if (revenueReportEl) {
-    revenueReportEl.textContent = formatMoney(totalFees) + " د.ع";
+  
+  // تحديث الحسابات فقط إذا كان المستخدم الحالي مسموحاً له برؤيتها
+  const currentRole = localStorage.getItem("user_role");
+  if (currentRole === "admin") {
+      if (revenueEl) revenueEl.textContent = formatMoney(totalFees);
+      if (revenueReportEl) {
+        revenueReportEl.textContent = formatMoney(totalFees) + " د.ع";
+      }
   }
 }
 
-/* بناء بطاقة الحجز */
+/* بناء بطاقة الحجز للمرضى */
 function createBookingCard(data) {
   const card = document.createElement("article");
   card.className = "booking-card";
@@ -200,8 +235,10 @@ function createBookingCard(data) {
   statusRow.appendChild(status);
   card.appendChild(statusRow);
 
+  // إظهار سعر الكشفية فقط لرتبة المدير
+  const currentRole = localStorage.getItem("user_role");
   const fee = Number(data.fee);
-  if (Number.isFinite(fee) && fee >= 0 && data.fee !== "") {
+  if (currentRole === "admin" && Number.isFinite(fee) && fee >= 0 && data.fee !== "") {
     const feeRow = document.createElement("p");
     addTextElement(feeRow, "b", "الكشفية:");
     feeRow.appendChild(
@@ -221,7 +258,7 @@ function createBookingCard(data) {
   return card;
 }
 
-/* البحث والتصفية */
+/* البحث والتصفية المتطورة */
 function renderList() {
   if (!listContainer) return;
   const searchText = searchInput ? searchInput.value.trim().toLocaleLowerCase() : "";
@@ -273,69 +310,4 @@ if (clearFiltersBtn) {
   });
 }
 
-/* حفظ حجز جديد */
-if (form) {
-  form.addEventListener("submit", async event => {
-    event.preventDefault();
-
-    if (!form.reportValidity()) return;
-
-    const formData = new FormData(form);
-    const name = String(formData.get("name") || "").trim();
-
-    if (!name) {
-      alert("يرجى إدخال اسم المريض.");
-      return;
-    }
-
-    const rawAge = String(formData.get("age") || "").trim();
-    const rawFee = String(formData.get("fee") || "").trim();
-
-    const bookingData = {
-      name,
-      age: rawAge,
-      phone: String(formData.get("phone") || "").trim(),
-      doctor: String(formData.get("doctor") || "").trim(),
-      specialty: String(formData.get("specialty") || "").trim(),
-      date: String(formData.get("date") || ""),
-      time: String(formData.get("time") || ""),
-      fee: rawFee,
-      status: String(formData.get("status") || "محجوز"),
-      notes: String(formData.get("notes") || "").trim(),
-      createdAt: serverTimestamp()
-    };
-
-    if (saveBtn) {
-      saveBtn.disabled = true;
-      saveBtn.textContent = "جارٍ الحفظ...";
-    }
-
-    try {
-      await addDoc(bookingsRef, bookingData);
-      form.reset();
-      if (dlg) dlg.close();
-      alert("تم حفظ الحجز بنجاح.");
-    } catch (error) {
-      console.error("فشل حفظ الحجز:", error);
-      alert("تعذر حفظ الحجز. تحقق من اتصال الإنترنت وقواعد أمان Firestore.");
-    } finally {
-      if (saveBtn) {
-          saveBtn.disabled = false;
-          saveBtn.textContent = "حفظ الحجز";
-      }
-    }
-  });
-}
-
-// تشغيل الاستماع الفوري لقاعدة البيانات لعرض الحجوزات واكتملت بنجاح هنا
-const q = query(bookingsRef, orderBy("createdAt", "desc"));
-onSnapshot(q, (snapshot) => {
-  allBookings = [];
-  snapshot.forEach((doc) => {
-      allBookings.push(doc.data());
-  });
-  updateStats();
-  renderList();
-  setConnection("متصل بشكل آمن وقيد المزامنة...", "success");
-}, (error) => {
-    
+      
