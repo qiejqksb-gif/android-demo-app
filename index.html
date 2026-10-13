@@ -1,212 +1,39 @@
-
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#090d17">
-  <meta name="description" content="نظام إدارة حجوزات العيادة">
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
-  <title>يوسف | إدارة العيادة</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة العيادة - نسخة الموظف</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
 </head>
-<body>
-  <header class="topbar">
-    <div class="logo">✚</div>
-    <div class="brand">
-      <h1>إدارة العيادة</h1>
-      <p>نظام الحجوزات والمتابعة</p>
+<body style="background-color: #000; color: #fff; margin: 0; font-family: sans-serif;">
+
+    <!-- 1. شاشة قفل التطبيق (طلب كود الموظف السري) -->
+    <div id="login-screen-ui" style="text-align: center; padding: 30px; background-color: #111; color: #fff; height: 100vh; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box;">
+        <h2 style="color: #d4af37; margin-bottom: 10px; font-size: 28px;">نظام إدارة العيادة ✚</h2>
+        <p style="margin-bottom: 25px; font-size: 16px; color: #ccc;">الرجاء إدخال كود الموظف لتفعيل النظام في هذا الهاتف</p>
+        
+        <input type="password" id="employee-code-input" placeholder="أدخل الكود السري هنا" style="padding: 14px; width: 260px; text-align: center; border: 2px solid #d4af37; background: #222; color: #fff; font-size: 18px; border-radius: 8px; margin-bottom: 20px; outline: none;">
+        
+        <button onclick="checkEmployeeCode()" style="padding: 14px 40px; background-color: #d4af37; color: black; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; font-size: 16px; transition: 0.3s;">
+            دخول النظام
+        </button>
     </div>
-    <span class="role-badge">نسخة المدير</span>
-  </header>
 
-  <main class="container">
-    <section class="welcome">
-      <div>
-        <span class="eyebrow">لوحة التحكم</span>
-        <h2>أهلاً بك 👋</h2>
-        <p>كل مواعيد مرضاك في مكان واحد.</p>
-      </div>
-      <button id="add" class="primary-btn" type="button">
-        ＋ حجز جديد
-      </button>
-    </section>
+    <!-- 2. واجهة التطبيق الرئيسية (نظام العيادة الخاص بك) -->
+    <div id="app-main-content">
+        <header style="padding: 20px; text-align: center; border-bottom: 1px solid #222;">
+            <h1 style="color: #d4af37; margin: 0;">لوحة تحكم العيادة</h1>
+            <p style="color: #aaa; margin: 5px 0 0 0;">نظام الحجوزات والمتابعة اليومية</p>
+        </header>
 
-    <section class="stats">
-      <article class="stat-card">
-        <span class="stat-icon">▤</span>
-        <small>إجمالي الحجوزات</small>
-        <strong id="count">0</strong>
-      </article>
-      <article class="stat-card">
-        <span class="stat-icon">▦</span>
-        <small>حجوزات اليوم</small>
-        <strong id="today">0</strong>
-      </article>
-      <article class="stat-card">
-        <span class="stat-icon">د.ع</span>
-        <small>مجموع أجور الكشفية</small>
-        <strong id="revenue">0</strong>
-      </article>
-    </section>
+        <main style="padding: 20px; text-align: center; margin-top: 50px;">
+            <p style="font-size: 18px; color: #aaa;">شاشات وأدوات إدارة العيادة ستعمل هنا تلقائياً بمجرد فتح القفل...</p>
+        </main>
+    </div>
 
-    <nav class="main-nav" aria-label="القائمة الرئيسية">
-      <button class="nav-btn active" type="button"
-              data-target="appointments">▤ الحجوزات</button>
-      <button class="nav-btn" type="button"
-              data-target="finance">د.ع الحسابات</button>
-      <button class="nav-btn" type="button"
-              data-action="add">＋ إضافة مريض</button>
-      <button class="nav-btn" type="button"
-              data-action="export">⇩ تصدير البيانات</button>
-    </nav>
-
-    <section id="appointments" class="panel">
-      <div class="section-title">
-        <div>
-          <span class="eyebrow">إدارة المواعيد</span>
-          <h2>سجل الحجوزات</h2>
-        </div>
-        <span id="connection" class="connection">جارٍ الاتصال...</span>
-      </div>
-
-      <div class="filters">
-        <input id="search" type="search"
-               placeholder="ابحث باسم المريض أو الهاتف"
-               aria-label="البحث">
-        <input id="filterDate" type="date"
-               aria-label="التصفية حسب التاريخ">
-        <button id="clearFilters" type="button" class="secondary-btn">
-          مسح التصفية
-        </button>
-        <button id="export" type="button" class="secondary-btn">
-          ⇩ تصدير CSV
-        </button>
-      </div>
-
-      <div id="list" aria-live="polite">
-        <p class="message">جارٍ تحميل الحجوزات...</p>
-      </div>
-    </section>
-
-    <section id="finance" class="panel">
-      <span class="eyebrow">ملخص مالي</span>
-      <h2>الحسابات وأجور الكشفية</h2>
-      <div class="finance-card">
-        <span>مجموع الرسوم المسجلة لجميع الحجوزات المحمّلة</span>
-        <strong id="revenue-report">0 د.ع</strong>
-      </div>
-      <p class="note">
-        هذا مجموع أجور الكشفية المدخلة في سجل الحجوزات، وليس
-        المبالغ المقبوضة فعليًا. لتتبع المقبوضات نحتاج إضافة
-        حالة دفع لكل حجز.
-      </p>
-    </section>
-
-    <footer>
-      <span>✦</span> نظام إدارة العيادة
-      <p>واجهة عربية · تصميم ذهبي</p>
-    </footer>
-  </main>
-
-  <dialog id="dlg">
-    <form id="form">
-      <div class="dialog-title">
-        <span class="eyebrow">تسجيل موعد</span>
-        <h2>بيانات الحجز</h2>
-      </div>
-
-      <label for="patientName">اسم المريض *</label>
-      <input id="patientName" name="name"
-             placeholder="اسم المريض" required maxlength="150">
-
-      <div class="form-grid">
-        <div>
-          <label for="age">العمر</label>
-          <input id="age" name="age" type="number"
-                 min="0" max="120" placeholder="العمر">
-        </div>
-        <div>
-          <label for="phone">رقم الهاتف</label>
-          <input id="phone" name="phone" type="tel"
-                 placeholder="رقم الهاتف" maxlength="30">
-        </div>
-      </div>
-
-      <label for="doctor">اسم الطبيب</label>
-      <input id="doctor" name="doctor" placeholder="اسم الطبيب">
-
-      <label for="specialty">اختصاص الطبيب</label>
-      <input id="specialty" name="specialty"
-             placeholder="الاختصاص">
-
-      <div class="form-grid">
-        <div>
-          <label for="bookingDate">تاريخ الموعد *</label>
-          <input id="bookingDate" name="date"
-                 type="date" required>
-        </div>
-        <div>
-          <label for="bookingTime">وقت الموعد</label>
-          <input id="bookingTime" name="time" type="time">
-        </div>
-      </div>
-
-      <label for="fee">سعر الكشفية بالدينار العراقي</label>
-      <input id="fee" name="fee" type="number"
-             min="0" step="1" placeholder="مثال: 25000">
-
-      <label for="status">حالة الحجز</label>
-      <select id="status" name="status">
-        <option value="محجوز">محجوز</option>
-        <option value="حضر">حضر</option>
-        <option value="لم يحضر">لم يحضر</option>
-        <option value="ملغي">ملغي</option>
-      </select>
-
-      <label for="notes">ملاحظات</label>
-      <textarea id="notes" name="notes" rows="3"
-                placeholder="ملاحظات إضافية"></textarea>
-
-      <menu>
-        <button type="button" id="cancel" class="secondary-btn">
-          إلغاء
-        </button>
-        <button type="submit" id="saveBooking" class="primary-btn">
-          حفظ الحجز
-        </button>
-      </menu>
-    </form>
-  </dialog>
-
-  <script type="module" src="app.js"></script>
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js").catch(console.warn);
-    }
-
-    document.querySelectorAll("[data-target]").forEach(button => {
-      button.addEventListener("click", () => {
-        document.querySelectorAll(".nav-btn").forEach(item =>
-          item.classList.toggle("active", item === button)
-        );
-        document.getElementById(button.dataset.target)
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    });
-
-    document.querySelectorAll('[data-action="add"]').forEach(button => {
-      button.addEventListener("click", () =>
-        document.getElementById("add").click()
-      );
-    });
-
-    document.querySelectorAll('[data-action="export"]').forEach(button => {
-      button.addEventListener("click", () =>
-        document.getElementById("export").click()
-      );
-    });
-  </script>
+    <!-- ربط ملف البرمجة الحركية الخاص بك -->
+    <script src="app.js"></script>
 </body>
-               </html>
-               
+</html>
