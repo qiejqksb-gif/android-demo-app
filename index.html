@@ -1,166 +1,160 @@
+
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1020">
+  <meta name="theme-color" content="#090d17">
   <meta name="description" content="نظام إدارة حجوزات العيادة">
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
   <title>يوسف | إدارة العيادة</title>
 </head>
 <body>
-  <header>
+  <header class="topbar">
     <div class="logo">✚</div>
     <div class="brand">
       <h1>إدارة العيادة</h1>
-      <p>نظام الحجوزات والمتابعة الطبية</p>
+      <p>نظام الحجوزات والمتابعة</p>
     </div>
-    <span class="admin-badge">المدير</span>
+    <span class="role-badge">نسخة المدير</span>
   </header>
 
-  <main>
+  <main class="container">
     <section class="welcome">
       <div>
-        <p class="eyebrow">لوحة التحكم</p>
+        <span class="eyebrow">لوحة التحكم</span>
         <h2>أهلاً بك 👋</h2>
-        <p>تابع مواعيد المرضى وحجوزات العيادة من مكان واحد.</p>
+        <p>كل مواعيد مرضاك في مكان واحد.</p>
       </div>
-      <button id="add" type="button">＋ حجز جديد</button>
+      <button id="add" class="primary-btn" type="button">
+        ＋ حجز جديد
+      </button>
     </section>
 
-    <section class="stats" aria-label="إحصائيات الحجوزات">
-      <article>
+    <section class="stats">
+      <article class="stat-card">
         <span class="stat-icon">▤</span>
         <small>إجمالي الحجوزات</small>
         <strong id="count">0</strong>
       </article>
-      <article>
+      <article class="stat-card">
         <span class="stat-icon">▦</span>
         <small>حجوزات اليوم</small>
         <strong id="today">0</strong>
       </article>
-      <article>
+      <article class="stat-card">
         <span class="stat-icon">د.ع</span>
-        <small>إجمالي أجور الكشفية</small>
+        <small>مجموع أجور الكشفية</small>
         <strong id="revenue">0</strong>
-        <small>حسب الحجوزات المحمّلة</small>
       </article>
     </section>
 
-    <nav class="dashboard-nav" aria-label="القائمة الرئيسية">
-      <button type="button" class="nav-item active" data-target="appointments">
-        <span>▤</span> الحجوزات
-      </button>
-      <button type="button" class="nav-item" data-target="statistics">
-        <span>▥</span> الإحصائيات
-      </button>
-      <button type="button" class="nav-item" data-action="add">
-        <span>＋</span> إضافة مريض
-      </button>
-      <button type="button" class="nav-item" data-action="export">
-        <span>⇩</span> تصدير البيانات
-      </button>
+    <nav class="main-nav" aria-label="القائمة الرئيسية">
+      <button class="nav-btn active" type="button"
+              data-target="appointments">▤ الحجوزات</button>
+      <button class="nav-btn" type="button"
+              data-target="finance">د.ع الحسابات</button>
+      <button class="nav-btn" type="button"
+              data-action="add">＋ إضافة مريض</button>
+      <button class="nav-btn" type="button"
+              data-action="export">⇩ تصدير البيانات</button>
     </nav>
 
     <section id="appointments" class="panel">
-      <div class="section-heading">
+      <div class="section-title">
         <div>
-          <p class="eyebrow">إدارة المواعيد</p>
+          <span class="eyebrow">إدارة المواعيد</span>
           <h2>سجل الحجوزات</h2>
         </div>
-        <span class="live-label">● سجل المرضى</span>
+        <span id="connection" class="connection">جارٍ الاتصال...</span>
       </div>
 
-      <div class="tools">
-        <input
-          id="search"
-          type="search"
-          placeholder="ابحث باسم المريض أو الهاتف"
-          aria-label="البحث عن مريض">
-        <input
-          id="filterDate"
-          type="date"
-          aria-label="تصفية حسب التاريخ">
-        <button id="export" type="button">⇩ تصدير CSV</button>
+      <div class="filters">
+        <input id="search" type="search"
+               placeholder="ابحث باسم المريض أو الهاتف"
+               aria-label="البحث">
+        <input id="filterDate" type="date"
+               aria-label="التصفية حسب التاريخ">
+        <button id="clearFilters" type="button" class="secondary-btn">
+          مسح التصفية
+        </button>
+        <button id="export" type="button" class="secondary-btn">
+          ⇩ تصدير CSV
+        </button>
       </div>
 
       <div id="list" aria-live="polite">
-        <p>جاري تحميل الحجوزات...</p>
+        <p class="message">جارٍ تحميل الحجوزات...</p>
       </div>
     </section>
 
-    <section id="statistics" class="panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">ملخص العمل</p>
-          <h2>الإحصائيات المالية</h2>
-        </div>
-      </div>
-      <p class="info-note">
-        تُحسب أجور الكشفية من الحجوزات التي تم تحميلها.
-        هذا الرقم ليس تقريرًا للمبالغ المقبوضة فعليًا؛
-        فذلك يتطلب تسجيل حالة الدفع لكل حجز.
-      </p>
+    <section id="finance" class="panel">
+      <span class="eyebrow">ملخص مالي</span>
+      <h2>الحسابات وأجور الكشفية</h2>
       <div class="finance-card">
-        <span>إجمالي أجور الكشفية المسجلة</span>
+        <span>مجموع الرسوم المسجلة لجميع الحجوزات المحمّلة</span>
         <strong id="revenue-report">0 د.ع</strong>
       </div>
-      <button type="button" class="secondary-btn" data-action="export">
-        تصدير سجل الحجوزات
-      </button>
+      <p class="note">
+        هذا مجموع أجور الكشفية المدخلة في سجل الحجوزات، وليس
+        المبالغ المقبوضة فعليًا. لتتبع المقبوضات نحتاج إضافة
+        حالة دفع لكل حجز.
+      </p>
     </section>
 
     <footer>
       <span>✦</span> نظام إدارة العيادة
-      <p>نسخة المدير · واجهة عربية</p>
+      <p>واجهة عربية · تصميم ذهبي</p>
     </footer>
   </main>
 
   <dialog id="dlg">
     <form id="form">
-      <div class="dialog-heading">
-        <p class="eyebrow">تسجيل موعد جديد</p>
+      <div class="dialog-title">
+        <span class="eyebrow">تسجيل موعد</span>
         <h2>بيانات الحجز</h2>
       </div>
 
-      <label for="patient-name">اسم المريض *</label>
-      <input id="patient-name" name="name"
-             placeholder="أدخل اسم المريض" required>
+      <label for="patientName">اسم المريض *</label>
+      <input id="patientName" name="name"
+             placeholder="اسم المريض" required maxlength="150">
 
       <div class="form-grid">
         <div>
-          <label for="patient-age">العمر</label>
-          <input id="patient-age" name="age" type="number"
+          <label for="age">العمر</label>
+          <input id="age" name="age" type="number"
                  min="0" max="120" placeholder="العمر">
         </div>
         <div>
-          <label for="patient-phone">رقم الهاتف</label>
-          <input id="patient-phone" name="phone"
-                 type="tel" placeholder="رقم الهاتف">
+          <label for="phone">رقم الهاتف</label>
+          <input id="phone" name="phone" type="tel"
+                 placeholder="رقم الهاتف" maxlength="30">
         </div>
       </div>
 
       <label for="doctor">اسم الطبيب</label>
       <input id="doctor" name="doctor" placeholder="اسم الطبيب">
 
-      <label for="specialty">الاختصاص</label>
-      <input id="specialty" name="specialty" placeholder="اختصاص الطبيب">
+      <label for="specialty">اختصاص الطبيب</label>
+      <input id="specialty" name="specialty"
+             placeholder="الاختصاص">
 
       <div class="form-grid">
         <div>
-          <label for="booking-date">تاريخ الموعد *</label>
-          <input id="booking-date" name="date" type="date" required>
+          <label for="bookingDate">تاريخ الموعد *</label>
+          <input id="bookingDate" name="date"
+                 type="date" required>
         </div>
         <div>
-          <label for="booking-time">وقت الموعد</label>
-          <input id="booking-time" name="time" type="time">
+          <label for="bookingTime">وقت الموعد</label>
+          <input id="bookingTime" name="time" type="time">
         </div>
       </div>
 
-      <label for="fee">أجور الكشفية (د.ع)</label>
-      <input id="fee" name="fee" type="number" min="0"
-             step="1" placeholder="مبلغ الكشفية">
+      <label for="fee">سعر الكشفية بالدينار العراقي</label>
+      <input id="fee" name="fee" type="number"
+             min="0" step="1" placeholder="مثال: 25000">
 
       <label for="status">حالة الحجز</label>
       <select id="status" name="status">
@@ -171,62 +165,48 @@
       </select>
 
       <label for="notes">ملاحظات</label>
-      <textarea id="notes" name="notes"
-                rows="3" placeholder="ملاحظات إضافية"></textarea>
+      <textarea id="notes" name="notes" rows="3"
+                placeholder="ملاحظات إضافية"></textarea>
 
       <menu>
-        <button type="button" id="cancel">إلغاء</button>
-        <button type="submit" id="save-booking">حفظ الحجز</button>
+        <button type="button" id="cancel" class="secondary-btn">
+          إلغاء
+        </button>
+        <button type="submit" id="saveBooking" class="primary-btn">
+          حفظ الحجز
+        </button>
       </menu>
     </form>
   </dialog>
 
   <script type="module" src="app.js"></script>
-
-  <script>
-    document.querySelectorAll("[data-target]").forEach(function(button) {
-      button.addEventListener("click", function() {
-        const target = document.getElementById(button.dataset.target);
-        if (target) {
-          document.querySelectorAll(".nav-item").forEach(function(item) {
-            item.classList.remove("active");
-          });
-          button.classList.add("active");
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      });
-    });
-
-    document.querySelectorAll('[data-action="add"]').forEach(function(button) {
-      button.addEventListener("click", function() {
-        document.getElementById("add").click();
-      });
-    });
-
-    document.querySelectorAll('[data-action="export"]').forEach(function(button) {
-      button.addEventListener("click", function() {
-        document.getElementById("export").click();
-      });
-    });
-
-    document.getElementById("appointments").addEventListener("click", function() {
-      document.querySelectorAll(".nav-item").forEach(function(item) {
-        if (item.dataset.target === "appointments") {
-          item.classList.add("active");
-        } else if (item.dataset.target) {
-          item.classList.remove("active");
-        }
-      });
-    });
-  </script>
-
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js").catch(function(error) {
-        console.warn("تعذر تسجيل Service Worker", error);
-      });
+      navigator.serviceWorker.register("./sw.js").catch(console.warn);
     }
+
+    document.querySelectorAll("[data-target]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".nav-btn").forEach(item =>
+          item.classList.toggle("active", item === button)
+        );
+        document.getElementById(button.dataset.target)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    document.querySelectorAll('[data-action="add"]').forEach(button => {
+      button.addEventListener("click", () =>
+        document.getElementById("add").click()
+      );
+    });
+
+    document.querySelectorAll('[data-action="export"]').forEach(button => {
+      button.addEventListener("click", () =>
+        document.getElementById("export").click()
+      );
+    });
   </script>
 </body>
-        </html>
-  
+               </html>
+               
