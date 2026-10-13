@@ -1,4 +1,3 @@
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
@@ -11,11 +10,33 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/*
- * إعداد Firebase:
- * تأكد من مطابقة authDomain لبنية مشروعك من Firebase Console.
- * بقية القيم أدناه مأخوذة من إعدادات مشروعك التي أرسلتها.
- */
+// الكود السري الخاص بدخول الموظفين (يمكنك تعديله من هنا)
+const SECRET_CODE = "2026"; 
+
+// دالة التحقق من الكود وحفظ الحالة في ذاكرة الهاتف
+window.checkEmployeeCode = function() {
+  const userInput = document.getElementById("employee-code-input").value;
+  
+  if (userInput === SECRET_CODE) {
+      localStorage.setItem("app_activated", "true");
+      const loginScreen = document.getElementById("login-screen-ui");
+      if (loginScreen) loginScreen.style.display = "none";
+      alert("أهلاً بك! تم تفعيل نظام الموظف بنجاح.");
+  } else {
+      alert("الكود السري خطأ! يرجى المحاولة مجدداً.");
+  }
+};
+
+// الفحص التلقائي عند تشغيل التطبيق للتأكد إن كان الموظف مسجلاً سابقاً
+window.addEventListener('DOMContentLoaded', () => {
+  const isActivated = localStorage.getItem("app_activated");
+  if (isActivated === "true") {
+      const loginScreen = document.getElementById("login-screen-ui");
+      if (loginScreen) loginScreen.style.display = "none";
+  }
+});
+
+/* إعدادات Firebase الخاصة بك */
 const firebaseConfig = {
   apiKey: "AIzaSyAWwyEb0DUY0Q_ZBluwtM4-gLQv4wNdwE",
   authDomain: "clinic-bookings-yousef.firebaseapp.com",
@@ -49,7 +70,6 @@ const saveBtn = $("saveBooking");
 const connectionEl = $("connection");
 
 let allBookings = [];
-let unsubscribeBookings = null;
 
 /* التاريخ حسب توقيت الهاتف المحلي */
 function localDateString(date = new Date()) {
@@ -89,17 +109,22 @@ function setConnection(message, state = "") {
 }
 
 /* فتح وإغلاق نموذج الحجز */
-addBtn.addEventListener("click", () => {
-  form.reset();
-  $("bookingDate").value = localDateString();
-  dlg.showModal();
-});
+if (addBtn) {
+  addBtn.addEventListener("click", () => {
+    if (form) form.reset();
+    const bDate = $("bookingDate");
+    if (bDate) bDate.value = localDateString();
+    if (dlg) dlg.showModal();
+  });
+}
 
-cancelBtn.addEventListener("click", () => dlg.close());
+if (cancelBtn) cancelBtn.addEventListener("click", () => dlg && dlg.close());
 
-dlg.addEventListener("click", event => {
-  if (event.target === dlg) dlg.close();
-});
+if (dlg) {
+  dlg.addEventListener("click", event => {
+    if (event.target === dlg) dlg.close();
+  });
+}
 
 /* تحديث الإحصائيات */
 function updateStats() {
@@ -116,11 +141,9 @@ function updateStats() {
     );
   }, 0);
 
-  countEl.textContent = formatMoney(allBookings.length);
-  todayEl.textContent = formatMoney(todayCount);
-
+  if (countEl) countEl.textContent = formatMoney(allBookings.length);
+  if (todayEl) todayEl.textContent = formatMoney(todayCount);
   if (revenueEl) revenueEl.textContent = formatMoney(totalFees);
-
   if (revenueReportEl) {
     revenueReportEl.textContent = formatMoney(totalFees) + " د.ع";
   }
@@ -200,8 +223,9 @@ function createBookingCard(data) {
 
 /* البحث والتصفية */
 function renderList() {
-  const searchText = searchInput.value.trim().toLocaleLowerCase();
-  const selectedDate = filterDateInput.value;
+  if (!listContainer) return;
+  const searchText = searchInput ? searchInput.value.trim().toLocaleLowerCase() : "";
+  const selectedDate = filterDateInput ? filterDateInput.value : "";
 
   const filtered = allBookings.filter(booking => {
     const name = safeText(booking.name, "").toLocaleLowerCase();
@@ -238,155 +262,80 @@ function renderList() {
   listContainer.appendChild(fragment);
 }
 
-searchInput.addEventListener("input", renderList);
-filterDateInput.addEventListener("change", renderList);
+if (searchInput) searchInput.addEventListener("input", renderList);
+if (filterDateInput) filterDateInput.addEventListener("change", renderList);
 
-clearFiltersBtn.addEventListener("click", () => {
-  searchInput.value = "";
-  filterDateInput.value = "";
-  renderList();
-});
+if (clearFiltersBtn) {
+  clearFiltersBtn.addEventListener("click", () => {
+    if (searchInput) searchInput.value = "";
+    if (filterDateInput) filterDateInput.value = "";
+    renderList();
+  });
+}
 
 /* حفظ حجز جديد */
-form.addEventListener("submit", async event => {
-  event.preventDefault();
+if (form) {
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
 
-  if (!form.reportValidity()) return;
+    if (!form.reportValidity()) return;
 
-  const formData = new FormData(form);
-  const name = String(formData.get("name") || "").trim();
+    const formData = new FormData(form);
+    const name = String(formData.get("name") || "").trim();
 
-  if (!name) {
-    alert("يرجى إدخال اسم المريض.");
-    return;
-  }
-
-  const rawAge = String(formData.get("age") || "").trim();
-  const rawFee = String(formData.get("fee") || "").trim();
-
-  const bookingData = {
-    name,
-    age: rawAge,
-    phone: String(formData.get("phone") || "").trim(),
-    doctor: String(formData.get("doctor") || "").trim(),
-    specialty: String(formData.get("specialty") || "").trim(),
-    date: String(formData.get("date") || ""),
-    time: String(formData.get("time") || ""),
-    fee: rawFee,
-    status: String(formData.get("status") || "محجوز"),
-    notes: String(formData.get("notes") || "").trim(),
-    createdAt: serverTimestamp()
-  };
-
-  saveBtn.disabled = true;
-  saveBtn.textContent = "جارٍ الحفظ...";
-
-  try {
-    await addDoc(bookingsRef, bookingData);
-    form.reset();
-    dlg.close();
-    alert("تم حفظ الحجز بنجاح.");
-  } catch (error) {
-    console.error("فشل حفظ الحجز:", error);
-    alert(
-      "تعذر حفظ الحجز. تحقق من اتصال الإنترنت وقواعد أمان Firestore."
-    );
-  } finally {
-    saveBtn.disabled = false;
-    saveBtn.textContent = "حفظ الحجز";
-  }
-});
-
-/* تصدير الحجوزات إلى CSV */
-function csvCell(value) {
-  const text = String(value ?? "");
-  return '"' + text.replace(/"/g, '""') + '"';
-}
-
-exportBtn.addEventListener("click", () => {
-  if (allBookings.length === 0) {
-    alert("لا توجد بيانات لتصديرها.");
-    return;
-  }
-
-  const rows = [
-    [
-      "اسم المريض", "العمر", "رقم الهاتف", "الطبيب",
-      "الاختصاص", "التاريخ", "الوقت", "الكشفية",
-      "الحالة", "ملاحظات"
-    ],
-    ...allBookings.map(booking => [
-      booking.name,
-      booking.age,
-      booking.phone,
-      booking.doctor,
-      booking.specialty,
-      booking.date,
-      booking.time,
-      booking.fee,
-      booking.status,
-      booking.notes
-    ])
-  ];
-
-  const csv = "\uFEFF" +
-    rows.map(row => row.map(csvCell).join(",")).join("\r\n");
-
-  const blob = new Blob([csv], {
-    type: "text/csv;charset=utf-8;"
-  });
-
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = `سجل_الحجوزات_${localDateString()}.csv`;
-
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-});
-
-/* مزامنة مباشرة من Firestore */
-function startBookingsListener() {
-  setConnection("جارٍ الاتصال...");
-
-  const q = query(bookingsRef, orderBy("date", "desc"));
-
-  unsubscribeBookings = onSnapshot(
-    q,
-    snapshot => {
-      allBookings = snapshot.docs.map(document => ({
-        id: document.id,
-        ...document.data()
-      }));
-
-      updateStats();
-      renderList();
-      setConnection("متصل · البيانات محدثة", "online");
-    },
-    error => {
-      console.error("خطأ في مزامنة Firestore:", error);
-      setConnection("تعذر الاتصال", "offline");
-      listContainer.replaceChildren();
-
-      addTextElement(
-        listContainer,
-        "p",
-        "تعذر تحميل الحجوزات. تحقق من إعداد Firebase وقواعد Firestore واتصال الإنترنت.",
-        "message"
-      );
+    if (!name) {
+      alert("يرجى إدخال اسم المريض.");
+      return;
     }
-  );
+
+    const rawAge = String(formData.get("age") || "").trim();
+    const rawFee = String(formData.get("fee") || "").trim();
+
+    const bookingData = {
+      name,
+      age: rawAge,
+      phone: String(formData.get("phone") || "").trim(),
+      doctor: String(formData.get("doctor") || "").trim(),
+      specialty: String(formData.get("specialty") || "").trim(),
+      date: String(formData.get("date") || ""),
+      time: String(formData.get("time") || ""),
+      fee: rawFee,
+      status: String(formData.get("status") || "محجوز"),
+      notes: String(formData.get("notes") || "").trim(),
+      createdAt: serverTimestamp()
+    };
+
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = "جارٍ الحفظ...";
+    }
+
+    try {
+      await addDoc(bookingsRef, bookingData);
+      form.reset();
+      if (dlg) dlg.close();
+      alert("تم حفظ الحجز بنجاح.");
+    } catch (error) {
+      console.error("فشل حفظ الحجز:", error);
+      alert("تعذر حفظ الحجز. تحقق من اتصال الإنترنت وقواعد أمان Firestore.");
+    } finally {
+      if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = "حفظ الحجز";
+      }
+    }
+  });
 }
 
-window.addEventListener("pagehide", () => {
-  if (typeof unsubscribeBookings === "function") {
-    unsubscribeBookings();
-  }
-});
-
-startBookingsListener();
+// تشغيل الاستماع الفوري لقاعدة البيانات لعرض الحجوزات واكتملت بنجاح هنا
+const q = query(bookingsRef, orderBy("createdAt", "desc"));
+onSnapshot(q, (snapshot) => {
+  allBookings = [];
+  snapshot.forEach((doc) => {
+      allBookings.push(doc.data());
+  });
+  updateStats();
+  renderList();
+  setConnection("متصل بشكل آمن وقيد المزامنة...", "success");
+}, (error) => {
     
