@@ -1,39 +1,94 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة العيادة - نسخة الموظف</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b13">
+  <title>يوسف | إدارة العيادة</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
 </head>
-<body style="background-color: #000; color: #fff; margin: 0; font-family: sans-serif;">
+<body>
+  <div id="login-screen-ui"></div>
 
-    <!-- 1. شاشة قفل التطبيق (طلب كود الموظف السري) -->
-    <div id="login-screen-ui" style="text-align: center; padding: 30px; background-color: #111; color: #fff; height: 100vh; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box;">
-        <h2 style="color: #d4af37; margin-bottom: 10px; font-size: 28px;">نظام إدارة العيادة ✚</h2>
-        <p style="margin-bottom: 25px; font-size: 16px; color: #ccc;">الرجاء إدخال كود الموظف لتفعيل النظام في هذا الهاتف</p>
-        
-        <input type="password" id="employee-code-input" placeholder="أدخل الكود السري هنا" style="padding: 14px; width: 260px; text-align: center; border: 2px solid #d4af37; background: #222; color: #fff; font-size: 18px; border-radius: 8px; margin-bottom: 20px; outline: none;">
-        
-        <button onclick="checkEmployeeCode()" style="padding: 14px 40px; background-color: #d4af37; color: black; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; font-size: 16px; transition: 0.3s;">
-            دخول النظام
-        </button>
-    </div>
+  <header>
+    <h1>يوسف | إدارة العيادة</h1>
+    <p>نظام الحجوزات والمتابعة اليومية</p>
+    <button id="logout-button" type="button">تسجيل الخروج</button>
+  </header>
 
-    <!-- 2. واجهة التطبيق الرئيسية (نظام العيادة الخاص بك) -->
-    <div id="app-main-content">
-        <header style="padding: 20px; text-align: center; border-bottom: 1px solid #222;">
-            <h1 style="color: #d4af37; margin: 0;">لوحة تحكم العيادة</h1>
-            <p style="color: #aaa; margin: 5px 0 0 0;">نظام الحجوزات والمتابعة اليومية</p>
-        </header>
+  <main>
+    <section>
+      <h2>الإحصائيات</h2>
+      <p>إجمالي الحجوزات: <span id="count">0</span></p>
+      <p>حجوزات اليوم: <span id="today">0</span></p>
+      <section id="revenue-section" data-admin-only>
+        <h3>الحسابات وأجور الكشفية</h3>
+        <p id="revenue">—</p>
+        <p id="revenue-report">—</p>
+      </section>
+    </section>
 
-        <main style="padding: 20px; text-align: center; margin-top: 50px;">
-            <p style="font-size: 18px; color: #aaa;">شاشات وأدوات إدارة العيادة ستعمل هنا تلقائياً بمجرد فتح القفل...</p>
-        </main>
-    </div>
+    <section>
+      <h2>حجوزات المرضى</h2>
+      <label for="search">البحث بالاسم أو الهاتف</label>
+      <input id="search" type="search" placeholder="ابحث عن مريض">
 
-    <!-- ربط ملف البرمجة الحركية الخاص بك -->
-    <script src="app.js"></script>
+      <label for="filterDate">تصفية حسب التاريخ</label>
+      <input id="filterDate" type="date">
+
+      <button id="clearFilters" type="button">مسح التصفية</button>
+      <button id="add" type="button">إضافة حجز جديد</button>
+      <p id="connection" class="connection">بانتظار الاتصال</p>
+      <div id="list"></div>
+    </section>
+
+    <dialog id="dlg">
+      <form id="form">
+        <h2>تسجيل حجز جديد</h2>
+
+        <label for="name">اسم المريض *</label>
+        <input id="name" name="name" required>
+
+        <label for="age">العمر</label>
+        <input id="age" name="age" type="number" min="0">
+
+        <label for="phone">رقم الهاتف</label>
+        <input id="phone" name="phone" type="tel">
+
+        <label for="doctor">اسم الطبيب</label>
+        <input id="doctor" name="doctor">
+
+        <label for="specialty">الاختصاص</label>
+        <input id="specialty" name="specialty">
+
+        <label for="bookingDate">تاريخ الحجز *</label>
+        <input id="bookingDate" name="date" type="date" required>
+
+        <label for="time">وقت الحجز</label>
+        <input id="time" name="time" type="time">
+
+        <label for="fee">أجرة الكشفية (د.ع)</label>
+        <input id="fee" name="fee" type="number" min="0">
+
+        <label for="status">حالة الحجز</label>
+        <select id="status" name="status">
+          <option value="محجوز">محجوز</option>
+          <option value="حضر">حضر</option>
+          <option value="ملغي">ملغي</option>
+        </select>
+
+        <label for="notes">ملاحظات</label>
+        <textarea id="notes" name="notes"></textarea>
+
+        <button id="saveBooking" type="submit">حفظ الحجز</button>
+        <button id="cancel" type="button">إلغاء</button>
+      </form>
+    </dialog>
+  </main>
+
+  <script type="module" src="app.js"></script>
 </body>
-</html>
+                                       </html>
+                                       
